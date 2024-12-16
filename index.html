@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-time Chat</title>
+    <style>
+        #messages { height: 300px; overflow-y: scroll; border: 1px solid #ccc; margin-bottom: 10px; padding: 10px; }
+        #inputArea { display: flex; gap: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Real-Time Chat</h1>
+    <div id="messages"></div>
+    <div id="inputArea">
+        <input type="text" id="messageInput" placeholder="Type a message..." />
+        <button onclick="sendMessage()">Send</button>
+    </div>
+
+    <script>
+        const messagesDiv = document.getElementById('messages');
+        const messageInput = document.getElementById('messageInput');
+
+        // Fetch messages every 2 seconds
+        setInterval(fetchMessages, 2000);
+
+        function fetchMessages() {
+            fetch('fetch_messages.php')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        messagesDiv.innerHTML = data.messages.join('<br>');
+                    }
+                });
+        }
+
+        function sendMessage() {
+            const message = messageInput.value;
+            if (!message) return;
+
+            fetch('webhook.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    messageInput.value = '';
+                    fetchMessages();
+                }
+            });
+        }
+    </script>
+</body>
+</html>
